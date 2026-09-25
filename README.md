@@ -64,11 +64,10 @@ git push
 
 - `stock_history.db`: 누적 조회용 SQLite
 - `raw/YYYY-MM-DD/`: 구성종목·가격·KRX 수급 원천 JSON
-- `reports/YYYY-MM-DD/`: 사람이 보는 HTML 리포트와 차트
-- `reports/YYYY-MM-DD.zip`: 중복을 줄인 HTML 리포트 묶음
+- `reports/YYYY-MM-DD/`: 사람이 보는 HTML 리포트와 필요한 CSV
 - `exports/YYYY-MM-DD/`: CSV 내보내기 파일
 - `schema.sql`: 데이터베이스 구조
 
-수급 원천은 `raw/YYYY-MM-DD/investor_flow_sources.json`에서 확인할 수 있다. `reports/YYYY-MM-DD/report-pairs.html`에서 당일 수급+추천종목과 최근 3거래일 수급+후보+추천종목의 묶음을 볼 수 있다. 최근 3거래일 수급은 `recent3-summary.html`, 최근 5거래일 수급은 `five-day-summary.html`이다. 상세 후보·강한 돌파·추천종목 HTML은 대표 파일만 유지하고, 당일 추천종목은 `recommended-stocks-today.html`, 대표 추천종목은 `recommended-stocks.html`로 저장한다. 후보 이력은 `ma60_candidate_sets` 테이블에 기간별로 저장한다.
+수급 원천은 `raw/YYYY-MM-DD/investor_flow_sources.json`에서 확인할 수 있다. `reports/YYYY-MM-DD/report-pairs.html`에서 당일 수급+추천종목과 최근 3거래일 수급+후보+추천종목의 묶음을 볼 수 있다. 최근 3거래일 수급은 `recent3-summary.html`, 최근 5거래일 수급은 `five-day-summary.html`이다. HTML은 당일·최근 3일·최근 5일 수급, 60일선 후보, 당일/최근 3일 추천종목만 유지하며, 강한 돌파 상세 목록은 `ma60_strong_breakouts*.csv`로 저장한다. 후보 이력은 `ma60_candidate_sets` 테이블에 기간별로 저장한다.
 
 금액은 DB와 CSV에 원 단위 정수로 저장하고, 리포트에서만 억원으로 표시한다. 구성종목 스냅샷도 매 실행마다 저장해 리밸런싱 이후 과거 결과를 재현할 수 있게 한다.

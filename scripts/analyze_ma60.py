@@ -320,6 +320,7 @@ def main() -> None:
     for stale_name in (
         "weekly-summary.html",
         "ma60-candidates-today.html", "ma60-candidates-recent3.html",
+        "ma60-strong-breakouts.html",
         "ma60-strong-breakouts-today.html", "ma60-strong-breakouts-recent3.html",
         "recommended-stocks-recent3.html",
         "ma60_candidates_recent3.csv", "ma60_strong_breakouts_recent3.csv",
@@ -396,7 +397,6 @@ def main() -> None:
         candidate_csv = report_dir / "ma60_candidates.csv"
         strong_csv = report_dir / "ma60_strong_breakouts.csv"
         candidate_html = report_dir / "ma60-candidates.html"
-        strong_html = report_dir / "ma60-strong-breakouts.html"
         recommendation_csv = report_dir / "recommended_stocks.csv"
         recommendation_html = report_dir / "recommended-stocks.html"
         export_recommendation_csv = export_dir / "recommended_stocks.csv"
@@ -404,7 +404,6 @@ def main() -> None:
         candidate_csv = report_dir / "ma60_candidates_today.csv"
         strong_csv = report_dir / "ma60_strong_breakouts_today.csv"
         candidate_html = None
-        strong_html = None
         recommendation_csv = report_dir / "recommended_stocks_today.csv"
         recommendation_html = report_dir / "recommended-stocks-today.html"
         export_recommendation_csv = export_dir / "recommended_stocks_today.csv"
@@ -420,13 +419,6 @@ def main() -> None:
             candidates[:20],
             all_columns,
         )
-        write_html_report(
-            strong_html,
-            f"60일선 돌파 후 강한 시세 후보 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
-            subtitle,
-            strong_candidates,
-            strong_columns,
-        )
     write_html_report(
         recommendation_html,
         f"추천종목 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
@@ -440,8 +432,6 @@ def main() -> None:
     print(f"recommendations_html={recommendation_html}")
     if candidate_html:
         print(f"candidates_html={candidate_html}")
-    if strong_html:
-        print(f"strong_html={strong_html}")
 
 
 if __name__ == "__main__":
