@@ -1,0 +1,18 @@
+{
+  "daily_KOSPI_foreign": "Daum",
+  "daily_KOSPI_institution": "Daum",
+  "daily_KOSDAQ_foreign": "Daum",
+  "daily_KOSDAQ_institution": "Daum",
+  "weekly_KOSPI_foreign": "Daum",
+  "weekly_KOSPI_institution": "Daum",
+  "weekly_KOSDAQ_foreign": "Daum",
+  "weekly_KOSDAQ_institution": "Daum",
+  "recent2_STK_foreign": "KRX exact recent2",
+  "recent3_STK_foreign": "KRX exact recent3",
+  "recent2_STK_institution": "KRX exact recent2",
+  "recent3_STK_institution": "KRX exact recent3",
+  "recent2_KSQ_foreign": "KRX exact recent2",
+  "recent3_KSQ_foreign": "KRX exact recent3",
+  "recent2_KSQ_institution": "KRX exact recent2",
+  "recent3_KSQ_institution": "KRX exact recent3"
+}
