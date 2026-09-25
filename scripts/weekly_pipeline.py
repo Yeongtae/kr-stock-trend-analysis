@@ -60,12 +60,6 @@ def parse_float(value) -> float:
     return float(str(value).replace(",", ""))
 
 
-def parse_amount(value) -> int:
-    if value is None or value == "":
-        return 0
-    return int(round(float(str(value).replace(",", ""))))
-
-
 def parse_constituents(url: str, count: int) -> tuple[str, list[dict]]:
     source = fetch_text(url)
     section_pos = source.index("구성 종목")
@@ -205,45 +199,6 @@ def fetch_krx_flow(market: str, investor_code: str, start_date: dt.date, end_dat
     )
 
 
-def fetch_daum_flow(market: str, investor_type: str, interval_type: str) -> dict:
-    params = urlencode(
-        {
-            "market": market,
-            "investorType": investor_type,
-            "intervalType": interval_type,
-            "limit": 30,
-        }
-    )
-    return fetch_json(
-        "https://finance.daum.net/api/trend/investor_purchase?" + params,
-        headers={
-            "Referer": f"https://finance.daum.net/domestic/influential_investors?market={market}",
-            "Accept": "application/json, text/plain, */*",
-        },
-    )
-
-
-def validate_daum_flow_payload(payload: dict, end_date: dt.date, period_type: str) -> None:
-    """Accept Daum only when it actually covers the requested end date."""
-    data = payload.get("data") if isinstance(payload, dict) else None
-    if not isinstance(data, dict) or not any(data.get(direction) for direction in ("BUY", "SELL")):
-        raise RuntimeError("Daum 응답에 수급 데이터가 없습니다.")
-
-    expected_date = end_date.isoformat()
-    actual_to_date = str(payload.get("toDate", ""))[:10]
-    if actual_to_date != expected_date:
-        raise RuntimeError(
-            f"Daum 응답 종료일이 요청일과 다릅니다: 요청={expected_date}, 응답={actual_to_date or '없음'}"
-        )
-
-    if period_type == "daily":
-        actual_from_date = str(payload.get("fromDate", ""))[:10]
-        if actual_from_date != expected_date:
-            raise RuntimeError(
-                f"Daum TODAY 응답일이 요청일과 다릅니다: 요청={expected_date}, 응답={actual_from_date or '없음'}"
-            )
-
-
 def price_period_rows(rows: list[dict], start_date: dt.date, end_date: dt.date, count: int | None = None) -> list[dict]:
     selected = [row for row in rows if start_date.isoformat() <= row["trade_date"] <= end_date.isoformat()]
     selected.sort(key=lambda row: row["trade_date"])
@@ -304,38 +259,6 @@ def build_flow_rows(flow_payload, universe, investor, member_codes, period_type:
                 "source": "KRX MDCSTAT02401_OUT",
             }
         )
-    return rows
-
-
-def build_daum_flow_rows(flow_payload, universe, investor, member_codes, period_type: str):
-    rows = []
-    data = flow_payload.get("data", {})
-    from_date = flow_payload.get("fromDate", "")
-    to_date = flow_payload.get("toDate", "")
-    source = f"Daum finance investor_purchase ({from_date}~{to_date})"
-    seen = set()
-    for direction in ("BUY", "SELL"):
-        for item in data.get(direction, []):
-            code = str(item.get("symbolCode", "")).removeprefix("A")
-            if code not in member_codes or code in seen:
-                continue
-            seen.add(code)
-            rows.append(
-                {
-                    "period_type": period_type,
-                    "universe": universe,
-                    "investor": investor,
-                    "code": code,
-                    "name": item.get("name", ""),
-                    "sell_volume": None,
-                    "buy_volume": None,
-                    "net_volume": parse_amount(item.get("straightPurchaseVolume")),
-                    "sell_value": None,
-                    "buy_value": None,
-                    "net_value": parse_amount(item.get("straightPurchasePrice")),
-                    "source": source,
-                }
-            )
     return rows
 
 
@@ -481,8 +404,10 @@ def main():
 
     weekly_returns = build_return_rows(universes, prices, "weekly", week_start, end_date, None)
     all_trade_dates = sorted({row["trade_date"] for rows in prices.values() for row in rows if row["trade_date"] <= end_date.isoformat()})
-    if len(all_trade_dates) < 3:
-        raise RuntimeError("최근 3거래일을 확인할 가격 데이터가 부족합니다.")
+    if len(all_trade_dates) < 5:
+        raise RuntimeError("최근 5거래일을 확인할 가격 데이터가 부족합니다.")
+    flow_end_date = dt.date.fromisoformat(all_trade_dates[-1])
+    recent5_start_date = dt.date.fromisoformat(all_trade_dates[-5])
     recent2_start_date = dt.date.fromisoformat(all_trade_dates[-2])
     recent3_start_date = dt.date.fromisoformat(all_trade_dates[-3])
     recent2_returns = build_return_rows(universes, prices, "recent2", recent2_start_date, end_date, 2)
@@ -492,58 +417,34 @@ def main():
     week_end_trade = week_trade_dates[-1] if week_trade_dates else None
 
     flow_payloads = {}
-    daum_payloads = {}
-    krx_fallback_payloads = {}
     flow_sources = {}
     flow_rows = []
-    # Try Daum first, but only accept a response whose requested end date is
-    # actually present. Historical runs commonly receive Daum's latest data,
-    # so a date mismatch must fall back to KRX instead of being mislabeled.
-    daum_periods = (("daily", "TODAY"), ("weekly", "DAYS_5"))
-    for period_type, interval_type in daum_periods:
+    # Use KRX for every investor-flow period so the full universe is covered
+    # consistently. The period windows are based on actual trading dates.
+    krx_periods = (
+        ("daily", flow_end_date, "KRX exact daily"),
+        ("weekly", recent5_start_date, "KRX exact recent5"),
+        ("recent2", recent2_start_date, "KRX exact recent2"),
+        ("recent3", recent3_start_date, "KRX exact recent3"),
+    )
+    for period_type, period_start, source_label in krx_periods:
         for market, universe in (("KOSPI", "KOSPI200"), ("KOSDAQ", "KOSDAQ150")):
             member_codes = {row["code"] for row in universes[universe]}
-            for investor_type, investor in (("FOREIGN", "foreign"), ("INSTITUTION", "institution")):
+            krx_market = "STK" if market == "KOSPI" else "KSQ"
+            for investor_code, investor in (("9000", "foreign"), ("7050", "institution")):
                 key = f"{period_type}_{market}_{investor}"
-                try:
-                    payload = fetch_daum_flow(market, investor_type, interval_type)
-                    validate_daum_flow_payload(payload, end_date, period_type)
-                    flow_payloads[key] = payload
-                    daum_payloads[key] = payload
-                    flow_sources[key] = f"Daum {interval_type} (requested end date matched)"
-                    flow_rows.extend(build_daum_flow_rows(payload, universe, investor, member_codes, period_type))
-                except Exception as daum_error:
-                    investor_code = "9000" if investor == "foreign" else "7050"
-                    period_start = week_start if period_type == "weekly" else end_date
-                    payload = fetch_krx_flow("STK" if market == "KOSPI" else "KSQ", investor_code, period_start, end_date)
-                    flow_payloads[key] = payload
-                    krx_fallback_payloads[key] = {"error": str(daum_error), "payload": payload}
-                    flow_sources[key] = "KRX fallback (Daum unavailable or date mismatch)"
-                    flow_rows.extend(build_flow_rows(payload, universe, investor, member_codes, period_type))
-
-    for market, universe in (("STK", "KOSPI200"), ("KSQ", "KOSDAQ150")):
-        member_codes = {row["code"] for row in universes[universe]}
-        for investor_code, investor in (("9000", "foreign"), ("7050", "institution")):
-            key = f"recent2_{market}_{investor}"
-            payload = fetch_krx_flow(market, investor_code, recent2_start_date, end_date)
-            flow_payloads[key] = payload
-            krx_fallback_payloads[key] = payload
-            flow_sources[key] = "KRX exact recent2"
-            flow_rows.extend(build_flow_rows(payload, universe, investor, member_codes, "recent2"))
-            key = f"recent3_{market}_{investor}"
-            payload = fetch_krx_flow(market, investor_code, recent3_start_date, end_date)
-            flow_payloads[key] = payload
-            krx_fallback_payloads[key] = payload
-            flow_sources[key] = "KRX exact recent3"
-            flow_rows.extend(build_flow_rows(payload, universe, investor, member_codes, "recent3"))
+                payload = fetch_krx_flow(krx_market, investor_code, period_start, flow_end_date)
+                flow_payloads[key] = payload
+                flow_sources[key] = source_label
+                flow_rows.extend(build_flow_rows(payload, universe, investor, member_codes, period_type))
     flow_ranks = flow_rankings(flow_rows)
-    source_note = "Daum TODAY/DAYS_5의 요청 종료일 데이터 확인 후 없거나 불일치하면 KRX fallback; exact recent2/recent3=KRX; Naver prices + 구성종목 스냅샷"
+    source_note = "모든 투자자 수급은 KRX MDCSTAT02401_OUT 기준(당일/최근5/최근2/최근3); Naver prices + 구성종목 스냅샷"
 
     raw_dir.joinpath("constituents.json").write_text(json.dumps(universes, ensure_ascii=False, indent=2), encoding="utf-8")
     raw_dir.joinpath("prices.json").write_text(json.dumps(prices, ensure_ascii=False, indent=2), encoding="utf-8")
     raw_dir.joinpath("investor_flows.json").write_text(json.dumps(flow_payloads, ensure_ascii=False, indent=2), encoding="utf-8")
-    raw_dir.joinpath("investor_flows_daum.json").write_text(json.dumps(daum_payloads, ensure_ascii=False, indent=2), encoding="utf-8")
-    raw_dir.joinpath("investor_flows_krx_fallback.json").write_text(json.dumps(krx_fallback_payloads, ensure_ascii=False, indent=2), encoding="utf-8")
+    for stale_name in ("investor_flows_daum.json", "investor_flows_krx_fallback.json", "investor_flows_krx.json"):
+        (raw_dir / stale_name).unlink(missing_ok=True)
     raw_dir.joinpath("investor_flow_sources.json").write_text(json.dumps(flow_sources, ensure_ascii=False, indent=2), encoding="utf-8")
     raw_dir.joinpath("errors.json").write_text(json.dumps({"price_errors": price_errors}, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -551,7 +452,7 @@ def main():
     write_csv(export_dir / "investor_flows.csv", flow_rows)
     write_csv(export_dir / "flow_rankings.csv", flow_ranks)
     report_title = f"주식 동향 {end_date.isoformat()}"
-    daily_source = "다음 금융 TODAY에서 요청일 확인 · 없거나 불일치하면 KRX fallback"
+    daily_source = f"KRX 기준 당일 ({flow_end_date.isoformat()}) · 전체 구성종목 수급"
     daily_html = make_flow_html(
         [row for row in flow_ranks if row["period_type"] == "daily"],
         report_title + " · 당일 수급",
@@ -563,10 +464,14 @@ def main():
     recent3_html = make_flow_html(
         [row for row in flow_ranks if row["period_type"] == "recent3"],
         report_title + " · 최근 3거래일 수급",
-        f"KRX 기준 최근 3거래일 ({recent3_start_date.isoformat()}~{end_date.isoformat()}) · 순매수 거래대금 · 단위: 억원",
+        f"KRX 기준 최근 3거래일 ({recent3_start_date.isoformat()}~{flow_end_date.isoformat()}) · 순매수 거래대금 · 단위: 억원",
     )
     (report_dir / "recent3-summary.html").write_text(recent3_html, encoding="utf-8")
-    summary_html = make_flow_html([row for row in flow_ranks if row["period_type"] == "weekly"], report_title + " · 최근 5거래일 수급")
+    summary_html = make_flow_html(
+        [row for row in flow_ranks if row["period_type"] == "weekly"],
+        report_title + " · 최근 5거래일 수급",
+        f"KRX 기준 최근 5거래일 ({recent5_start_date.isoformat()}~{flow_end_date.isoformat()}) · 순매수 거래대금 · 단위: 억원",
+    )
     (report_dir / "five-day-summary.html").write_text(summary_html, encoding="utf-8")
     (report_dir / "weekly-summary.html").write_text(recent3_html, encoding="utf-8")
 
