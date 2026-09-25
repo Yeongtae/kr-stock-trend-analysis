@@ -68,6 +68,6 @@ git push
 - `exports/YYYY-MM-DD/`: CSV 내보내기 파일
 - `schema.sql`: 데이터베이스 구조
 
-수급 원천은 `raw/YYYY-MM-DD/investor_flow_sources.json`에서 확인할 수 있다. `reports/YYYY-MM-DD/report-pairs.html`에서 당일 수급+후보와 최근 3거래일 수급+후보의 두 묶음을 볼 수 있다. 최근 3거래일 수급은 `recent3-summary.html` 및 호환용 `weekly-summary.html`, 최근 5거래일 수급은 `five-day-summary.html`이다. 당일/최근 3거래일 돌파 후보는 각각 `ma60-strong-breakouts-today.html`, `ma60-strong-breakouts-recent3.html`이며, 후보 이력은 `ma60_candidate_sets` 테이블에 기간별로 저장한다.
+수급 원천은 `raw/YYYY-MM-DD/investor_flow_sources.json`에서 확인할 수 있다. `reports/YYYY-MM-DD/report-pairs.html`에서 당일 수급+후보+추천종목과 최근 3거래일 수급+후보+추천종목의 두 묶음을 볼 수 있다. 최근 3거래일 수급은 `recent3-summary.html` 및 호환용 `weekly-summary.html`, 최근 5거래일 수급은 `five-day-summary.html`이다. 당일/최근 3거래일 돌파 후보는 각각 `ma60-strong-breakouts-today.html`, `ma60-strong-breakouts-recent3.html`이며, 추천종목은 `recommended_stocks.csv`·`recommended-stocks.html`로 별도 저장한다. 후보 이력은 `ma60_candidate_sets` 테이블에 기간별로 저장한다.
 
 금액은 DB와 CSV에 원 단위 정수로 저장하고, 리포트에서만 억원으로 표시한다. 구성종목 스냅샷도 매 실행마다 저장해 리밸런싱 이후 과거 결과를 재현할 수 있게 한다.

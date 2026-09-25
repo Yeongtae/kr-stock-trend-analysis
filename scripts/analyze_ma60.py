@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "stock_history.db"
+EXPORT_DIR = ROOT / "exports"
 
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -313,20 +314,29 @@ def main() -> None:
         )
     con.commit()
     report_dir = ROOT / "reports" / run_id
+    export_dir = EXPORT_DIR / run_id
     report_dir.mkdir(parents=True, exist_ok=True)
+    export_dir.mkdir(parents=True, exist_ok=True)
 
     strong_candidates = [item for item in candidates if item["stage"] == "강한 돌파 추세"]
     signal_label = "당일" if flow_period == "daily" else "최근 3거래일"
     report_suffix = "당일 수급" if flow_period == "daily" else "최근 3거래일 수급"
+    recommendations = []
+    for recommendation_rank, item in enumerate(strong_candidates, 1):
+        recommendation = dict(item)
+        recommendation["recommendation_rank"] = recommendation_rank
+        recommendation["recommendation_basis"] = f"{report_suffix} 기준 · 강한 돌파 추세"
+        recommendations.append(recommendation)
     table_style = (
         "<style>body{font-family:system-ui;margin:24px;color:#20242a}table{border-collapse:collapse;font-size:13px;min-width:1050px}"
         "th,td{padding:7px 9px;border:1px solid #ddd;text-align:right;white-space:nowrap}th{background:#f1f3f5}"
         "td:nth-child(1),td:nth-child(2){text-align:left}.table-wrap{overflow-x:auto}</style>"
     )
 
-    def write_csv_report(path: Path, items: list[dict]) -> None:
+    def write_csv_report(path: Path, items: list[dict], fieldnames: list[str] | None = None) -> None:
         with path.open("w", newline="", encoding="utf-8-sig") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(items[0].keys()) if items else ["name"])
+            columns = fieldnames or (list(items[0].keys()) if items else ["name"])
+            writer = csv.DictWriter(handle, fieldnames=columns, extrasaction="ignore")
             writer.writeheader()
             writer.writerows(items)
 
@@ -361,6 +371,13 @@ def main() -> None:
         (f"외국인 {signal_label}(억)", "foreign_flow_eok"),
         (f"기관 {signal_label}(억)", "institution_flow_eok"),
     ]
+    recommendation_columns = [
+        ("추천순위", "recommendation_rank"), ("추천근거", "recommendation_basis"),
+        *strong_columns,
+    ]
+    recommendation_fields = [key for _, key in recommendation_columns] + [
+        "code", "stage", "pullback_quality", "strong_reason", "flow_period", "flow_start_date",
+    ]
     subtitle = (
         f"가격 기준일 {price_as_of} · 최근 3거래일 이격 변화 · {report_suffix} 기준 수급 확인 · "
         "60일선 아래 종목 제외 · 거래대금 단위: 억원"
@@ -369,8 +386,12 @@ def main() -> None:
     strong_csv = report_dir / f"ma60_strong_breakouts_{output_suffix}.csv"
     candidate_html = report_dir / f"ma60-candidates-{output_suffix}.html"
     strong_html = report_dir / f"ma60-strong-breakouts-{output_suffix}.html"
+    recommendation_csv = report_dir / f"recommended_stocks_{output_suffix}.csv"
+    recommendation_html = report_dir / f"recommended-stocks-{output_suffix}.html"
     write_csv_report(candidate_csv, candidates)
     write_csv_report(strong_csv, strong_candidates)
+    write_csv_report(recommendation_csv, recommendations, recommendation_fields)
+    write_csv_report(export_dir / f"recommended_stocks_{output_suffix}.csv", recommendations, recommendation_fields)
     write_html_report(
         candidate_html,
         f"60일선 위치·돌파단계 후보 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
@@ -385,13 +406,25 @@ def main() -> None:
         strong_candidates,
         strong_columns,
     )
+    write_html_report(
+        recommendation_html,
+        f"추천종목 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
+        subtitle + " · 추천종목 = 강한 돌파 추세",
+        recommendations,
+        recommendation_columns,
+    )
     if flow_period == "recent3":
         write_csv_report(report_dir / "ma60_candidates.csv", candidates)
         write_csv_report(report_dir / "ma60_strong_breakouts.csv", strong_candidates)
+        write_csv_report(report_dir / "recommended_stocks.csv", recommendations, recommendation_fields)
+        write_csv_report(export_dir / "recommended_stocks.csv", recommendations, recommendation_fields)
         (report_dir / "ma60-candidates.html").write_text(candidate_html.read_text(encoding="utf-8"), encoding="utf-8")
         (report_dir / "ma60-strong-breakouts.html").write_text(strong_html.read_text(encoding="utf-8"), encoding="utf-8")
+        (report_dir / "recommended-stocks.html").write_text(recommendation_html.read_text(encoding="utf-8"), encoding="utf-8")
     print(f"run={run_id} price_as_of={price_as_of} flow_period={flow_period} candidates={len(candidates)}")
     print(f"strong_candidates={len(strong_candidates)}")
+    print(f"recommendations_csv={recommendation_csv}")
+    print(f"recommendations_html={recommendation_html}")
     print(f"candidates_html={candidate_html}")
     print(f"strong_html={strong_html}")
 
