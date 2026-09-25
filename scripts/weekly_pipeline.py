@@ -17,6 +17,7 @@ import re
 import sqlite3
 import subprocess
 import sys
+import zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from threading import Lock
@@ -298,6 +299,15 @@ def ensure_dirs(end_date: str):
     return raw_dir, report_dir, export_dir
 
 
+def archive_html_reports(run_id: str, report_dir: Path) -> Path:
+    """Create one compact HTML bundle alongside the per-report directory."""
+    archive_path = REPORT_DIR / f"{run_id}.zip"
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(report_dir.glob("*.html")):
+            archive.write(path, arcname=path.name)
+    return archive_path
+
+
 def write_csv(path: Path, rows: list[dict]):
     if not rows:
         path.write_text("", encoding="utf-8-sig")
@@ -473,7 +483,7 @@ def main():
         f"KRX 기준 최근 5거래일 ({recent5_start_date.isoformat()}~{flow_end_date.isoformat()}) · 순매수 거래대금 · 단위: 억원",
     )
     (report_dir / "five-day-summary.html").write_text(summary_html, encoding="utf-8")
-    (report_dir / "weekly-summary.html").write_text(recent3_html, encoding="utf-8")
+    (report_dir / "weekly-summary.html").unlink(missing_ok=True)
 
     create_db(run_id, generated_at, end_date, week_start, week_end_trade, recent2_start_date.isoformat(), universes, prices, returns, flow_rows, flow_ranks, source_note)
     analysis_script = ROOT / "scripts" / "analyze_ma60.py"
@@ -487,11 +497,12 @@ def main():
     pair_index = f"""<!doctype html><html lang='ko'><meta charset='utf-8'><title>오늘·최근 3거래일 리포트 묶음</title>
 <style>body{{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:28px;background:#f7f8fa;color:#20242a}}main{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}}section{{background:white;padding:18px;border:1px solid #e1e5ea;border-radius:12px}}h1{{margin-bottom:6px}}p{{color:#69727d}}a{{display:block;margin:12px 0;color:#1769aa}}</style>
 <h1>수급·돌파 후보 리포트 ({end_date.isoformat()})</h1><p>당일 기준과 최근 3거래일 기준으로 나눈 두 묶음</p><main>
-<section><h2>당일 데이터 pair</h2><a href='daily-summary.html'>당일 수급 리포트</a><a href='ma60-strong-breakouts-today.html'>당일 수급 기준 강한 돌파 후보</a><a href='recommended-stocks-today.html'>당일 추천종목</a></section>
-<section><h2>최근 3거래일 수급 pair</h2><a href='recent3-summary.html'>최근 3거래일 수급 리포트 (KRX exact window)</a><a href='ma60-strong-breakouts-recent3.html'>최근 3거래일 수급 기준 강한 돌파 후보</a><a href='recommended-stocks-recent3.html'>최근 3거래일 추천종목</a></section>
+<section><h2>당일 데이터</h2><a href='daily-summary.html'>당일 수급 리포트</a><a href='recommended-stocks-today.html'>당일 추천종목</a></section>
+<section><h2>최근 3거래일 데이터</h2><a href='recent3-summary.html'>최근 3거래일 수급 리포트 (KRX exact window)</a><a href='ma60-candidates.html'>60일선 후보</a><a href='ma60-strong-breakouts.html'>강한 돌파 후보</a><a href='recommended-stocks.html'>추천종목</a></section>
 </main></html>"""
     (report_dir / "report-pairs.html").write_text(pair_index, encoding="utf-8")
-    print(json.dumps({"run_id": run_id, "db": str(DB_PATH), "price_rows": sum(len(rows) for rows in prices.values()), "price_errors": len(price_errors), "return_rows": len(returns), "flow_rows": len(flow_rows), "flow_sources": flow_sources, "ma60_analysis": "done", "report_dir": str(report_dir)}, ensure_ascii=False))
+    report_archive = archive_html_reports(run_id, report_dir)
+    print(json.dumps({"run_id": run_id, "db": str(DB_PATH), "price_rows": sum(len(rows) for rows in prices.values()), "price_errors": len(price_errors), "return_rows": len(returns), "flow_rows": len(flow_rows), "flow_sources": flow_sources, "ma60_analysis": "done", "report_dir": str(report_dir), "report_archive": str(report_archive)}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

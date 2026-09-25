@@ -317,6 +317,16 @@ def main() -> None:
     export_dir = EXPORT_DIR / run_id
     report_dir.mkdir(parents=True, exist_ok=True)
     export_dir.mkdir(parents=True, exist_ok=True)
+    for stale_name in (
+        "weekly-summary.html",
+        "ma60-candidates-today.html", "ma60-candidates-recent3.html",
+        "ma60-strong-breakouts-today.html", "ma60-strong-breakouts-recent3.html",
+        "recommended-stocks-recent3.html",
+        "ma60_candidates_recent3.csv", "ma60_strong_breakouts_recent3.csv",
+        "recommended_stocks_recent3.csv",
+    ):
+        (report_dir / stale_name).unlink(missing_ok=True)
+        (export_dir / stale_name).unlink(missing_ok=True)
 
     strong_candidates = [item for item in candidates if item["stage"] == "강한 돌파 추세"]
     signal_label = "당일" if flow_period == "daily" else "최근 3거래일"
@@ -382,30 +392,41 @@ def main() -> None:
         f"가격 기준일 {price_as_of} · 최근 3거래일 이격 변화 · {report_suffix} 기준 수급 확인 · "
         "60일선 아래 종목 제외 · 거래대금 단위: 억원"
     )
-    candidate_csv = report_dir / f"ma60_candidates_{output_suffix}.csv"
-    strong_csv = report_dir / f"ma60_strong_breakouts_{output_suffix}.csv"
-    candidate_html = report_dir / f"ma60-candidates-{output_suffix}.html"
-    strong_html = report_dir / f"ma60-strong-breakouts-{output_suffix}.html"
-    recommendation_csv = report_dir / f"recommended_stocks_{output_suffix}.csv"
-    recommendation_html = report_dir / f"recommended-stocks-{output_suffix}.html"
+    if flow_period == "recent3":
+        candidate_csv = report_dir / "ma60_candidates.csv"
+        strong_csv = report_dir / "ma60_strong_breakouts.csv"
+        candidate_html = report_dir / "ma60-candidates.html"
+        strong_html = report_dir / "ma60-strong-breakouts.html"
+        recommendation_csv = report_dir / "recommended_stocks.csv"
+        recommendation_html = report_dir / "recommended-stocks.html"
+        export_recommendation_csv = export_dir / "recommended_stocks.csv"
+    else:
+        candidate_csv = report_dir / "ma60_candidates_today.csv"
+        strong_csv = report_dir / "ma60_strong_breakouts_today.csv"
+        candidate_html = None
+        strong_html = None
+        recommendation_csv = report_dir / "recommended_stocks_today.csv"
+        recommendation_html = report_dir / "recommended-stocks-today.html"
+        export_recommendation_csv = export_dir / "recommended_stocks_today.csv"
     write_csv_report(candidate_csv, candidates)
     write_csv_report(strong_csv, strong_candidates)
     write_csv_report(recommendation_csv, recommendations, recommendation_fields)
-    write_csv_report(export_dir / f"recommended_stocks_{output_suffix}.csv", recommendations, recommendation_fields)
-    write_html_report(
-        candidate_html,
-        f"60일선 위치·돌파단계 후보 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
-        subtitle,
-        candidates[:20],
-        all_columns,
-    )
-    write_html_report(
-        strong_html,
-        f"60일선 돌파 후 강한 시세 후보 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
-        subtitle,
-        strong_candidates,
-        strong_columns,
-    )
+    write_csv_report(export_recommendation_csv, recommendations, recommendation_fields)
+    if flow_period == "recent3":
+        write_html_report(
+            candidate_html,
+            f"60일선 위치·돌파단계 후보 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
+            subtitle,
+            candidates[:20],
+            all_columns,
+        )
+        write_html_report(
+            strong_html,
+            f"60일선 돌파 후 강한 시세 후보 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
+            subtitle,
+            strong_candidates,
+            strong_columns,
+        )
     write_html_report(
         recommendation_html,
         f"추천종목 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
@@ -413,20 +434,14 @@ def main() -> None:
         recommendations,
         recommendation_columns,
     )
-    if flow_period == "recent3":
-        write_csv_report(report_dir / "ma60_candidates.csv", candidates)
-        write_csv_report(report_dir / "ma60_strong_breakouts.csv", strong_candidates)
-        write_csv_report(report_dir / "recommended_stocks.csv", recommendations, recommendation_fields)
-        write_csv_report(export_dir / "recommended_stocks.csv", recommendations, recommendation_fields)
-        (report_dir / "ma60-candidates.html").write_text(candidate_html.read_text(encoding="utf-8"), encoding="utf-8")
-        (report_dir / "ma60-strong-breakouts.html").write_text(strong_html.read_text(encoding="utf-8"), encoding="utf-8")
-        (report_dir / "recommended-stocks.html").write_text(recommendation_html.read_text(encoding="utf-8"), encoding="utf-8")
     print(f"run={run_id} price_as_of={price_as_of} flow_period={flow_period} candidates={len(candidates)}")
     print(f"strong_candidates={len(strong_candidates)}")
     print(f"recommendations_csv={recommendation_csv}")
     print(f"recommendations_html={recommendation_html}")
-    print(f"candidates_html={candidate_html}")
-    print(f"strong_html={strong_html}")
+    if candidate_html:
+        print(f"candidates_html={candidate_html}")
+    if strong_html:
+        print(f"strong_html={strong_html}")
 
 
 if __name__ == "__main__":
