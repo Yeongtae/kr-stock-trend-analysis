@@ -211,7 +211,7 @@ def build_return_rows(universes, prices, period_type: str, start_date: dt.date, 
         candidates = []
         for member in members:
             rows = price_period_rows(prices.get(member["code"], []), start_date, end_date, count)
-            if len(rows) < 2:
+            if not rows:
                 continue
             first, last = rows[0], rows[-1]
             if not first["open"]:

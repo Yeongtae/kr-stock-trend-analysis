@@ -136,7 +136,7 @@ def main() -> None:
         avg20_turnover = sum((r["close"] or 0) * (r["volume"] or 0) for r in recent20) / len(recent20)
         avg5_turnover = sum((r["close"] or 0) * (r["volume"] or 0) for r in recent5) / len(recent5)
         turnover_ratio = avg5_turnover / avg20_turnover if avg20_turnover else 0
-        weekly_return = week_rows[-1]["close"] / week_rows[0]["close"] - 1 if week_rows[0]["close"] else 0
+        weekly_return = week_rows[-1]["close"] / week_rows[0]["open"] - 1 if week_rows[0]["open"] else 0
         today_return = current["close"] / rows[current_index - 1]["close"] - 1 if rows[current_index - 1]["close"] else 0
         if flow_period == "recent3":
             signal_rows = rows[-3:]
