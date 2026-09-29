@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "stock_history.db"
 EXPORT_DIR = ROOT / "exports"
+RECOMMENDATION_MIN_COMBINED_FLOW = 5_000_000_000  # 50억원
 
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -333,10 +334,21 @@ def main() -> None:
     signal_label = "당일" if flow_period == "daily" else "최근 3거래일"
     report_suffix = "당일 수급" if flow_period == "daily" else "최근 3거래일 수급"
     recommendations = []
-    for recommendation_rank, item in enumerate(strong_candidates, 1):
+    qualifying_recommendations = [
+        item
+        for item in strong_candidates
+        if item["foreign_flow_value"] + item["institution_flow_value"]
+        >= RECOMMENDATION_MIN_COMBINED_FLOW
+    ]
+    for recommendation_rank, item in enumerate(qualifying_recommendations, 1):
         recommendation = dict(item)
+        recommendation["combined_flow_eok"] = round(
+            (item["foreign_flow_value"] + item["institution_flow_value"]) / 100_000_000, 1
+        )
         recommendation["recommendation_rank"] = recommendation_rank
-        recommendation["recommendation_basis"] = f"{report_suffix} 기준 · 강한 돌파 추세"
+        recommendation["recommendation_basis"] = (
+            f"{report_suffix} 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상"
+        )
         recommendations.append(recommendation)
     table_style = (
         "<style>body{font-family:system-ui;margin:24px;color:#20242a}table{border-collapse:collapse;font-size:13px;min-width:1050px}"
@@ -385,6 +397,7 @@ def main() -> None:
     recommendation_columns = [
         ("추천순위", "recommendation_rank"), ("추천근거", "recommendation_basis"),
         *strong_columns,
+        ("외국인·기관 합산(억)", "combined_flow_eok"),
     ]
     recommendation_fields = [key for _, key in recommendation_columns] + [
         "code", "stage", "pullback_quality", "strong_reason", "flow_period", "flow_start_date",
@@ -422,7 +435,7 @@ def main() -> None:
     write_html_report(
         recommendation_html,
         f"추천종목 · {report_suffix} 기준 ({run_id}, 가격 기준일 {price_as_of})",
-        subtitle + " · 추천종목 = 강한 돌파 추세",
+        subtitle + " · 추천종목 = 강한 돌파 추세 + 외국인·기관 합산 순매수 50억원 이상",
         recommendations,
         recommendation_columns,
     )
