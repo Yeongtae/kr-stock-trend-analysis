@@ -1,0 +1,4 @@
+﻿recommendation_rank,recommendation_basis,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,strong_reason,flow_period,flow_start_date
+1,당일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSPI200,에이피알,98.2,2.98,5.26,0.59,4.11,2026-10-07,1.04,230.8,238.8,469.6,278470,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,daily,2026-10-07
+2,당일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSPI200,한국콜마,75,5.18,4.34,12.24,-2.61,,1.33,-20.6,122.0,101.4,161890,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,daily,2026-10-07
+3,당일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSPI200,S-Oil,70,1.79,3.52,17.42,11.9,,1.02,-34.8,176.5,141.6,010950,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,daily,2026-10-07
