@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import html
+import json
 import sqlite3
 from pathlib import Path
 
@@ -97,7 +98,8 @@ def main() -> None:
     candidates = []
     for code, labels in members.items():
         rows = prices.get(code, [])
-        if len(rows) < 80:
+        # The signal compares today's MA60 distance with three sessions ago.
+        if len(rows) < 83:
             continue
         for index, row in enumerate(rows):
             if index < 79:
@@ -127,7 +129,7 @@ def main() -> None:
         week_cross_date = next((date for date in all_cross_dates if week_start <= date <= end_date), None)
         days_since_cross = (current_index - next((i for i in range(current_index, 79, -1) if rows[i]["trade_date"] == cross_date), current_index)) if cross_date else None
         last3 = rows[max(0, current_index - 2) : current_index + 1]
-        held3 = len(last3) == 3 and all(r["close"] > r["ma60"] for r in last3)
+        held3 = len(last3) == 3 and all(r.get("ma60") is not None and r["close"] > r["ma60"] for r in last3)
         # The user's primary filter: anything below the 60-day average is out.
         if current["close"] <= current["ma60"]:
             continue
@@ -406,6 +408,12 @@ def main() -> None:
         f"가격 기준일 {price_as_of} · 최근 3거래일 이격 변화 · {report_suffix} 기준 수급 확인 · "
         "60일선 아래 종목 제외 · 거래대금 단위: 억원"
     )
+    source_path = ROOT / "raw" / run_id / "constituent_source.json"
+    if source_path.exists():
+        source = json.loads(source_path.read_text(encoding="utf-8"))
+        if source.get("kind") == "cached":
+            dates = ", ".join(sorted(set(source.get("snapshot_dates", {}).values())))
+            subtitle += f" · 구성종목 재사용: 직접 수집 {source['collected_date']}, 원본 기준 {dates}"
     if flow_period == "recent3":
         candidate_csv = report_dir / "ma60_candidates.csv"
         strong_csv = report_dir / "ma60_strong_breakouts.csv"

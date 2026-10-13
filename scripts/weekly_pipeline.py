@@ -31,6 +31,11 @@ EXPORT_DIR = ROOT / "exports"
 DB_PATH = ROOT / "stock_history.db"
 SCHEMA_PATH = ROOT / "schema.sql"
 UA = "Mozilla/5.0 (Codex weekly stock history)"
+CONSTITUENT_CACHE_MAX_DAYS = 7
+CONSTITUENT_SOURCES = {
+    "KOSPI200": ("https://m.namu.moe/w/KOSPI200", 200),
+    "KOSDAQ150": ("https://m.namu.moe/w/KOSDAQ150", 150),
+}
 
 
 def fetch_bytes(url: str, data: bytes | None = None, headers: dict[str, str] | None = None) -> bytes:
@@ -84,6 +89,77 @@ def parse_constituents(url: str, count: int) -> tuple[str, list[dict]]:
     return snapshot_date, rows
 
 
+def load_cached_constituents(end_date: dt.date) -> tuple[dict[str, list[dict]], dict]:
+    """Use a recent live collection, without refreshing its age on reuse."""
+    candidates = sorted(RAW_DIR.glob("*/constituents.json"), reverse=True)
+    for path in candidates:
+        try:
+            collected_date = dt.date.fromisoformat(path.parent.name)
+            age = (end_date - collected_date).days
+            if not 0 <= age <= CONSTITUENT_CACHE_MAX_DAYS:
+                continue
+            source_path = path.parent / "constituent_source.json"
+            if source_path.exists() and json.loads(source_path.read_text(encoding="utf-8")).get("kind") == "cached":
+                continue
+            universes = json.loads(path.read_text(encoding="utf-8"))
+            repaired = {}
+            snapshot_dates = {}
+            for universe, (_, expected_count) in CONSTITUENT_SOURCES.items():
+                rows = universes[universe]
+                if len(rows) != expected_count:
+                    raise ValueError(f"{universe}: {len(rows)}/{expected_count}")
+                ranks = [row["rank"] for row in rows]
+                names = [row["name"] for row in rows]
+                if ranks != list(range(1, expected_count + 1)) or len(set(names)) != expected_count:
+                    raise ValueError(f"{universe}: invalid names or ranks")
+                codes = [row["code"] for row in rows]
+                duplicate_codes = {code for code in codes if codes.count(code) > 1}
+                for row in rows:
+                    if row["code"] in duplicate_codes or not re.fullmatch(r"[0-9A-Z]{6}", row["code"]):
+                        _, code = autocomplete_code(row["name"])
+                        if not code:
+                            raise ValueError(f"{universe}: code lookup failed for {row['name']}")
+                        # The autocomplete must match the full company name.
+                        if code != row["code"]:
+                            repaired[row["name"]] = {"old": row["code"], "new": code}
+                        row["code"] = code
+                if len({row["code"] for row in rows}) != expected_count:
+                    raise ValueError(f"{universe}: duplicate codes remain")
+                dates = {row["snapshot_date"] for row in rows}
+                if len(dates) != 1 or dt.date.fromisoformat(next(iter(dates))) > end_date:
+                    raise ValueError(f"{universe}: invalid snapshot date")
+                snapshot_date = next(iter(dates))
+                snapshot_dates[universe] = snapshot_date
+            return universes, {"kind": "cached", "path": str(path.relative_to(ROOT)),
+                               "collected_date": collected_date.isoformat(), "collection_age_days": age,
+                               "snapshot_dates": snapshot_dates,
+                               "age_days": {universe: (end_date - dt.date.fromisoformat(snapshot_date)).days
+                                            for universe, snapshot_date in snapshot_dates.items()},
+                               "code_repairs": repaired}
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+            continue
+    raise RuntimeError(f"최근 {CONSTITUENT_CACHE_MAX_DAYS}일 내 직접 수집한 검증 가능한 구성종목 스냅샷이 없습니다.")
+
+
+def load_constituents(end_date: dt.date) -> tuple[dict[str, list[dict]], dict]:
+    try:
+        parsed = {universe: parse_constituents(url, count)
+                  for universe, (url, count) in CONSTITUENT_SOURCES.items()}
+    except Exception as exc:
+        universes, source = load_cached_constituents(end_date)
+        source["live_error"] = str(exc)
+        return universes, source
+    universes = map_codes({universe: rows for universe, (_, rows) in parsed.items()})
+    for universe, rows in universes.items():
+        for row in rows:
+            row["snapshot_date"] = parsed[universe][0]
+    return universes, {
+        "kind": "live",
+        "urls": {universe: url for universe, (url, _) in CONSTITUENT_SOURCES.items()},
+        "snapshot_dates": {universe: snapshot_date for universe, (snapshot_date, _) in parsed.items()},
+    }
+
+
 def load_stock_master() -> dict[str, str]:
     compressed = fetch_bytes("https://github.com/FinanceData/stock_master/raw/master/stock_master.csv.gz")
     text = gzip.decompress(compressed).decode("utf-8-sig")
@@ -96,7 +172,8 @@ def autocomplete_code(name: str) -> tuple[str, str | None]:
     )
     try:
         payload = fetch_json(url)
-        items = [item for item in payload.get("result", {}).get("items", []) if item.get("category") == "stock"]
+        items = [item for item in payload.get("result", {}).get("items", [])
+                 if item.get("category") == "stock" and item.get("name") == name]
         return name, items[0].get("code") if items else None
     except Exception:
         return name, None
@@ -394,14 +471,7 @@ def main():
     run_id = end_date.isoformat()
     raw_dir, report_dir, export_dir = ensure_dirs(run_id)
 
-    snapshot_kp, kp = parse_constituents("https://m.namu.moe/w/KOSPI200", 200)
-    snapshot_kd, kd = parse_constituents("https://m.namu.moe/w/KOSDAQ150", 150)
-    universes = {"KOSPI200": kp, "KOSDAQ150": kd}
-    universes = map_codes(universes)
-    for universe, rows in universes.items():
-        snapshot_date = snapshot_kp if universe == "KOSPI200" else snapshot_kd
-        for row in rows:
-            row["snapshot_date"] = snapshot_date
+    universes, constituent_source = load_constituents(end_date)
     all_codes = sorted({row["code"] for row in universes["KOSPI200"] + universes["KOSDAQ150"]})
     prices, price_errors = fetch_prices(all_codes, week_start, end_date)
 
@@ -441,9 +511,11 @@ def main():
                 flow_sources[key] = source_label
                 flow_rows.extend(build_flow_rows(payload, universe, investor, member_codes, period_type))
     flow_ranks = flow_rankings(flow_rows)
-    source_note = "모든 투자자 수급은 KRX MDCSTAT02401_OUT 기준(당일/최근5/최근2/최근3); Naver prices + 구성종목 스냅샷"
+    source_note = ("모든 투자자 수급은 KRX MDCSTAT02401_OUT 기준(당일/최근5/최근2/최근3); "
+                   f"Naver prices + 구성종목 스냅샷 ({constituent_source['kind']})")
 
     raw_dir.joinpath("constituents.json").write_text(json.dumps(universes, ensure_ascii=False, indent=2), encoding="utf-8")
+    raw_dir.joinpath("constituent_source.json").write_text(json.dumps(constituent_source, ensure_ascii=False, indent=2), encoding="utf-8")
     raw_dir.joinpath("prices.json").write_text(json.dumps(prices, ensure_ascii=False, indent=2), encoding="utf-8")
     raw_dir.joinpath("investor_flows.json").write_text(json.dumps(flow_payloads, ensure_ascii=False, indent=2), encoding="utf-8")
     for stale_name in ("investor_flows_daum.json", "investor_flows_krx_fallback.json", "investor_flows_krx.json"):
@@ -482,17 +554,20 @@ def main():
         subprocess.run(
             [sys.executable, str(analysis_script), "--run-id", run_id, "--flow-period", flow_period, "--output-suffix", output_suffix],
             check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
         )
+    snapshot_dates_label = ", ".join(sorted(set(constituent_source.get("snapshot_dates", {}).values())))
     pair_index = f"""<!doctype html><html lang='ko'><meta charset='utf-8'><title>오늘·최근 3거래일 리포트 묶음</title>
 <style>body{{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:28px;background:#f7f8fa;color:#20242a}}main{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}}section{{background:white;padding:18px;border:1px solid #e1e5ea;border-radius:12px}}h1{{margin-bottom:6px}}p{{color:#69727d}}a{{display:block;margin:12px 0;color:#1769aa}}</style>
-<h1>수급·돌파 후보 리포트 ({end_date.isoformat()})</h1><p>당일 기준과 최근 3거래일 기준으로 나눈 두 묶음</p><main>
+<h1>수급·돌파 후보 리포트 ({end_date.isoformat()})</h1><p>당일 기준과 최근 3거래일 기준으로 나눈 두 묶음</p>
+<p>구성종목 출처: {html.escape(constituent_source['kind'])} · 최종 직접 수집일:
+{html.escape(constituent_source.get('collected_date', run_id))} · 원본 기준일:
+{html.escape(snapshot_dates_label)}
+· 상세: raw/{run_id}/constituent_source.json</p><main>
 <section><h2>당일 데이터</h2><a href='daily-summary.html'>당일 수급 리포트</a><a href='recommended-stocks-today.html'>당일 추천종목</a></section>
 <section><h2>최근 3거래일 데이터</h2><a href='recent3-summary.html'>최근 3거래일 수급 리포트 (KRX exact window)</a><a href='ma60-candidates.html'>60일선 후보</a><a href='recommended-stocks.html'>추천종목</a></section>
 </main></html>"""
     (report_dir / "report-pairs.html").write_text(pair_index, encoding="utf-8")
-    print(json.dumps({"run_id": run_id, "db": str(DB_PATH), "price_rows": sum(len(rows) for rows in prices.values()), "price_errors": len(price_errors), "return_rows": len(returns), "flow_rows": len(flow_rows), "flow_sources": flow_sources, "ma60_analysis": "done", "report_dir": str(report_dir)}, ensure_ascii=False))
+    print(json.dumps({"run_id": run_id, "db": str(DB_PATH), "price_rows": sum(len(rows) for rows in prices.values()), "price_errors": len(price_errors), "return_rows": len(returns), "flow_rows": len(flow_rows), "flow_sources": flow_sources, "constituent_source": constituent_source, "ma60_analysis": "done", "report_dir": str(report_dir)}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

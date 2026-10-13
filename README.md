@@ -72,3 +72,5 @@ git push
 수급 원천은 `raw/YYYY-MM-DD/investor_flow_sources.json`에서 확인할 수 있다. `reports/YYYY-MM-DD/report-pairs.html`에서 당일 수급+추천종목과 최근 3거래일 수급+후보+추천종목의 묶음을 볼 수 있다. 최근 3거래일 수급은 `recent3-summary.html`, 최근 5거래일 수급은 `five-day-summary.html`이다. HTML은 당일·최근 3일·최근 5일 수급, 60일선 후보, 당일/최근 3일 추천종목만 유지하며, 강한 돌파 상세 목록은 `ma60_strong_breakouts*.csv`로 저장한다. 후보 이력은 `ma60_candidate_sets` 테이블에 기간별로 저장한다.
 
 금액은 DB와 CSV에 원 단위 정수로 저장하고, 리포트에서만 억원으로 표시한다. 구성종목 스냅샷도 매 실행마다 저장해 리밸런싱 이후 과거 결과를 재현할 수 있게 한다.
+
+구성종목 원본 사이트가 응답하지 않으면 최근 7일 안에 수집해 둔 `raw/YYYY-MM-DD/constituents.json`을 검증한 뒤 재사용한다. 200개·150개 종목 수, 순위, 중복 코드, 기준일을 확인하고 중복 코드는 네이버 종목명 일치 검색으로 다시 확인한다. 사용할 수 있는 스냅샷이 없으면 분석을 중단한다. 사용한 원본과 재사용 여부, 코드 수정 내역은 해당 실행일의 `raw/YYYY-MM-DD/constituent_source.json`에 남긴다. 재사용 스냅샷은 원래 구성종목 기준일을 유지하므로 최신 지수 편입·편출을 반영하지 못할 수 있다.
