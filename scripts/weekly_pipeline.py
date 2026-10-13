@@ -36,6 +36,7 @@ CONSTITUENT_SOURCES = {
     "KOSPI200": ("https://m.namu.moe/w/KOSPI200", 200),
     "KOSDAQ150": ("https://m.namu.moe/w/KOSDAQ150", 150),
 }
+KRX_INDEX_CODES = {"KOSPI200": ("1028", "0102"), "KOSDAQ150": ("2203", "0202")}
 
 
 def fetch_bytes(url: str, data: bytes | None = None, headers: dict[str, str] | None = None) -> bytes:
@@ -89,6 +90,47 @@ def parse_constituents(url: str, count: int) -> tuple[str, list[dict]]:
     return snapshot_date, rows
 
 
+def fetch_krx_constituents(universe: str, end_date: dt.date) -> tuple[str, list[dict]]:
+    """Read the KRX Indices constituent table using its page's current OTP route."""
+    index_code, upmid_code = KRX_INDEX_CODES[universe]
+    base = "https://index.krx.co.kr"
+    page = (base + "/contents/MKD/03/0304/03040101/MKD03040101T3.jsp?"
+            + urlencode({"idxCd": index_code, "upmidCd": upmid_code}))
+    headers = {"User-Agent": "Mozilla/5.0", "Referer": page}
+    source = fetch_text(page, headers=headers)
+    match = re.search(r'<form[^>]+data-bld="([^"]+)"', source)
+    if not match:
+        raise RuntimeError(f"KRX 구성종목 조회 경로를 찾지 못했습니다: {universe}")
+    bld = match.group(1)
+    for offset in range(8):
+        trade_date = end_date - dt.timedelta(days=offset)
+        day = trade_date.strftime("%Y%m%d")
+        otp_url = base + "/contents/COM/GenerateOTP.jspx?" + urlencode({"bld": bld, "name": "form"})
+        code = fetch_text(otp_url, headers=headers).strip()
+        if not code:
+            raise RuntimeError(f"KRX OTP 발급 실패: {universe}")
+        body = urlencode({"ind_tp_cd": index_code[0], "idx_ind_cd": index_code[1:],
+                          "idx_id": "", "lang": "ko", "compst_isu_tp": "1",
+                          "schdate": day, "fromdate": day, "todate": day, "code": code}).encode()
+        payload = fetch_json(base + "/contents/IDX/99/IDX99000001.jspx", body,
+                             {**headers, "X-Requested-With": "XMLHttpRequest"})
+        items = payload.get("output", [])
+        if not items:
+            continue
+        expected = (200, 201) if universe == "KOSPI200" else (150,)
+        if len(items) not in expected:
+            raise RuntimeError(f"KRX 구성종목 수 오류: {universe} {len(items)}")
+        rows = [{"rank": rank, "name": item["isu_nm"].strip(),
+                 "code": item["isu_cd"].strip(), "snapshot_date": trade_date.isoformat()}
+                for rank, item in enumerate(items, 1)]
+        if (len({row["code"] for row in rows}) != len(rows)
+                or len({row["name"] for row in rows}) != len(rows)
+                or any(not re.fullmatch(r"[0-9A-Z]{6}", row["code"]) or not row["name"] for row in rows)):
+            raise RuntimeError(f"KRX 구성종목 코드/종목명 검증 실패: {universe}")
+        return trade_date.isoformat(), rows
+    raise RuntimeError(f"KRX 최근 8일 구성종목 데이터 없음: {universe}")
+
+
 def load_cached_constituents(end_date: dt.date) -> tuple[dict[str, list[dict]], dict]:
     """Use a recent live collection, without refreshing its age on reuse."""
     candidates = sorted(RAW_DIR.glob("*/constituents.json"), reverse=True)
@@ -106,8 +148,10 @@ def load_cached_constituents(end_date: dt.date) -> tuple[dict[str, list[dict]], 
             snapshot_dates = {}
             for universe, (_, expected_count) in CONSTITUENT_SOURCES.items():
                 rows = universes[universe]
-                if len(rows) != expected_count:
+                allowed_counts = (200, 201) if universe == "KOSPI200" else (expected_count,)
+                if len(rows) not in allowed_counts:
                     raise ValueError(f"{universe}: {len(rows)}/{expected_count}")
+                expected_count = len(rows)
                 ranks = [row["rank"] for row in rows]
                 names = [row["name"] for row in rows]
                 if ranks != list(range(1, expected_count + 1)) or len(set(names)) != expected_count:
@@ -142,21 +186,32 @@ def load_cached_constituents(end_date: dt.date) -> tuple[dict[str, list[dict]], 
 
 
 def load_constituents(end_date: dt.date) -> tuple[dict[str, list[dict]], dict]:
+    krx_error = None
+    try:
+        krx = {universe: fetch_krx_constituents(universe, end_date)
+               for universe in KRX_INDEX_CODES}
+        return ({universe: rows for universe, (_, rows) in krx.items()},
+                {"kind": "krx", "urls": {universe: "https://index.krx.co.kr/contents/MKD/03/0304/03040101/MKD03040101T3.jsp"
+                                          for universe in KRX_INDEX_CODES},
+                 "snapshot_dates": {universe: date for universe, (date, _) in krx.items()}})
+    except Exception as exc:
+        krx_error = exc
     try:
         parsed = {universe: parse_constituents(url, count)
                   for universe, (url, count) in CONSTITUENT_SOURCES.items()}
     except Exception as exc:
         universes, source = load_cached_constituents(end_date)
-        source["live_error"] = str(exc)
+        source["live_error"] = {"krx": str(krx_error), "namu": str(exc)}
         return universes, source
     universes = map_codes({universe: rows for universe, (_, rows) in parsed.items()})
     for universe, rows in universes.items():
         for row in rows:
             row["snapshot_date"] = parsed[universe][0]
     return universes, {
-        "kind": "live",
+        "kind": "namu",
         "urls": {universe: url for universe, (url, _) in CONSTITUENT_SOURCES.items()},
         "snapshot_dates": {universe: snapshot_date for universe, (snapshot_date, _) in parsed.items()},
+        "krx_error": str(krx_error),
     }
 
 

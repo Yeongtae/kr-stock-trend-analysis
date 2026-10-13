@@ -49,8 +49,16 @@ def main() -> None:
     recent2_start = run["recent2_start"]
 
     members = {}
-    for row in con.execute("SELECT universe, code, name FROM universes"):
-        members.setdefault(row["code"], []).append((row["universe"], row["name"]))
+    constituent_file = ROOT / "raw" / run_id / "constituents.json"
+    if constituent_file.exists():
+        run_universes = json.loads(constituent_file.read_text(encoding="utf-8"))
+        for universe, rows in run_universes.items():
+            for row in rows:
+                members.setdefault(row["code"], []).append((universe, row["name"]))
+    else:
+        for row in con.execute("SELECT universe, code, name FROM universes WHERE snapshot_date <= ?",
+                               (end_date,)):
+            members.setdefault(row["code"], []).append((row["universe"], row["name"]))
 
     prices = {}
     for row in con.execute(
