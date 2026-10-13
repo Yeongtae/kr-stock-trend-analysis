@@ -1,0 +1,29 @@
+{
+  "kind": "cached",
+  "path": "raw/2026-10-11/constituents.json",
+  "collected_date": "2026-10-11",
+  "collection_age_days": 2,
+  "snapshot_dates": {
+    "KOSPI200": "2026-06-12",
+    "KOSDAQ150": "2026-06-12"
+  },
+  "age_days": {
+    "KOSPI200": 123,
+    "KOSDAQ150": 123
+  },
+  "code_repairs": {
+    "OCI": {
+      "old": "010060",
+      "new": "456040"
+    },
+    "피에스케이": {
+      "old": "031980",
+      "new": "319660"
+    },
+    "솔브레인": {
+      "old": "036830",
+      "new": "357780"
+    }
+  },
+  "live_error": "HTTP Error 522: <none>"
+}
