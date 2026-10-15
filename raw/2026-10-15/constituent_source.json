@@ -1,0 +1,32 @@
+{
+  "kind": "cached",
+  "path": "raw/2026-10-15/constituents.json",
+  "collected_date": "2026-10-15",
+  "collection_age_days": 0,
+  "snapshot_dates": {
+    "KOSPI200": "2026-06-12",
+    "KOSDAQ150": "2026-06-12"
+  },
+  "age_days": {
+    "KOSPI200": 125,
+    "KOSDAQ150": 125
+  },
+  "code_repairs": {
+    "OCI": {
+      "old": "010060",
+      "new": "456040"
+    },
+    "피에스케이": {
+      "old": "031980",
+      "new": "319660"
+    },
+    "솔브레인": {
+      "old": "036830",
+      "new": "357780"
+    }
+  },
+  "live_error": {
+    "krx": "The read operation timed out",
+    "namu": "<urlopen error [Errno 54] Connection reset by peer>"
+  }
+}
