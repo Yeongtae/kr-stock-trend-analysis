@@ -1,0 +1,2 @@
+﻿recommendation_rank,recommendation_basis,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,strong_reason,flow_period,flow_start_date
+1,당일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSPI200,KT&G,77.7,7.23,4.0,7.42,5.72,,1.25,-163.9,388.8,224.8,033780,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,daily,2026-10-15
