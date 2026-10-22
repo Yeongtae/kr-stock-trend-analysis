@@ -1,0 +1,4 @@
+﻿recommendation_rank,recommendation_basis,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,strong_reason,flow_period,flow_start_date
+1,최근 3거래일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSPI200,LG씨엔에스,96.1,13.24,5.52,2.96,3.88,2026-10-21,1.3,9.8,504.5,514.3,064400,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,recent3,2026-10-20
+2,최근 3거래일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSPI200,삼성E&A,80,29.56,26.07,17.64,22.05,2026-10-21,1.8,1245.6,1138.6,2384.2,028050,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,recent3,2026-10-20
+3,최근 3거래일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSDAQ150,카카오게임즈,80,6.13,8.89,20.83,4.76,,1.6,12.0,40.5,52.5,293490,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,recent3,2026-10-20
