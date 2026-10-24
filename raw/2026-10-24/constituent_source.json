@@ -1,0 +1,11 @@
+{
+  "kind": "krx",
+  "urls": {
+    "KOSPI200": "https://index.krx.co.kr/contents/MKD/03/0304/03040101/MKD03040101T3.jsp",
+    "KOSDAQ150": "https://index.krx.co.kr/contents/MKD/03/0304/03040101/MKD03040101T3.jsp"
+  },
+  "snapshot_dates": {
+    "KOSPI200": "2026-10-23",
+    "KOSDAQ150": "2026-10-23"
+  }
+}
