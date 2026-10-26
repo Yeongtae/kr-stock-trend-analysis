@@ -1,0 +1,5 @@
+﻿recommendation_rank,recommendation_basis,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,strong_reason,flow_period,flow_start_date
+1,최근 3거래일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSDAQ150,카카오게임즈,80,-2.87,9.51,22.19,8.8,,1.71,22.5,63.0,85.5,293490,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,recent3,2026-10-22
+2,최근 3거래일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSPI200,삼성E&A,80,1.18,17.84,24.98,24.41,,2.6,3080.3,848.9,3929.2,028050,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,recent3,2026-10-22
+3,최근 3거래일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSDAQ150,루닛,80,17.99,27.85,44.95,28.23,,1.28,32.5,46.9,79.4,328130,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,recent3,2026-10-22
+4,최근 3거래일 수급 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상,KOSDAQ150,삼현,75,6.73,6.97,17.26,3.99,,1.43,-19.6,90.9,71.3,437730,강한 돌파 추세,,주간수익률·60일선 이격·거래대금/수급 확인,recent3,2026-10-22
