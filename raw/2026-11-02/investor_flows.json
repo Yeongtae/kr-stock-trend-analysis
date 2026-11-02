@@ -8822,7 +8822,7 @@
         "NETBID_TRDVAL": "-230,427,068,000"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:53"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:22"
   },
   "daily_KOSPI_institution": {
     "output": [
@@ -17307,7 +17307,7 @@
         "NETBID_TRDVAL": "-10,135,198,400"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:53"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:23"
   },
   "daily_KOSDAQ_foreign": {
     "output": [
@@ -34482,7 +34482,7 @@
         "NETBID_TRDVAL": "-11,480,398,150"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:54"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:23"
   },
   "daily_KOSDAQ_institution": {
     "output": [
@@ -45817,7 +45817,7 @@
         "NETBID_TRDVAL": "-24,182,316,775"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:54"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:23"
   },
   "weekly_KOSPI_foreign": {
     "output": [
@@ -54812,7 +54812,7 @@
         "NETBID_TRDVAL": "-283,404,475,750"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:54"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:24"
   },
   "weekly_KOSPI_institution": {
     "output": [
@@ -63637,7 +63637,7 @@
         "NETBID_TRDVAL": "-82,861,695,250"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:55"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:24"
   },
   "weekly_KOSDAQ_foreign": {
     "output": [
@@ -81022,7 +81022,7 @@
         "NETBID_TRDVAL": "-56,666,789,550"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:55"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:24"
   },
   "weekly_KOSDAQ_institution": {
     "output": [
@@ -97797,7 +97797,7 @@
         "NETBID_TRDVAL": "-24,182,316,775"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:56"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:25"
   },
   "recent2_KOSPI_foreign": {
     "output": [
@@ -106712,7 +106712,7 @@
         "NETBID_TRDVAL": "-653,349,571,500"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:56"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:25"
   },
   "recent2_KOSPI_institution": {
     "output": [
@@ -115517,7 +115517,7 @@
         "NETBID_TRDVAL": "-34,095,833,500"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:57"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:26"
   },
   "recent2_KOSDAQ_foreign": {
     "output": [
@@ -132842,7 +132842,7 @@
         "NETBID_TRDVAL": "-12,908,911,500"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:58"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:26"
   },
   "recent2_KOSDAQ_institution": {
     "output": [
@@ -148817,7 +148817,7 @@
         "NETBID_TRDVAL": "-24,182,316,775"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:58"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:27"
   },
   "recent3_KOSPI_foreign": {
     "output": [
@@ -157762,7 +157762,7 @@
         "NETBID_TRDVAL": "-445,294,435,950"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:59"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:27"
   },
   "recent3_KOSPI_institution": {
     "output": [
@@ -166567,7 +166567,7 @@
         "NETBID_TRDVAL": "-193,348,256,500"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:00:59"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:28"
   },
   "recent3_KOSDAQ_foreign": {
     "output": [
@@ -183912,7 +183912,7 @@
         "NETBID_TRDVAL": "-23,068,551,250"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:01:00"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:28"
   },
   "recent3_KOSDAQ_institution": {
     "output": [
@@ -200397,6 +200397,6 @@
         "NETBID_TRDVAL": "-24,182,316,775"
       }
     ],
-    "CURRENT_DATETIME": "2026.11.02 PM 08:01:00"
+    "CURRENT_DATETIME": "2026.11.02 PM 08:12:29"
   }
 }
