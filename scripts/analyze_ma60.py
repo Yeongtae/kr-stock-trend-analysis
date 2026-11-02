@@ -189,28 +189,20 @@ def main() -> None:
         recent_cross = days_since_cross is not None and days_since_cross <= 10
         if strong_move:
             stage = "강한 돌파 추세"
-            strong_reason = "주간수익률·60일선 이격·거래대금/수급 확인"
         elif recent_cross and distance_change_3d < -0.5 and current["distance_pct"] > 0.3:
             stage = "돌파 후 눌림목"
-            strong_reason = ""
         elif recent_cross and held3:
             stage = "신규 돌파 유지"
-            strong_reason = ""
         elif recent_cross:
             stage = "신규 돌파"
-            strong_reason = ""
         elif current["distance_pct"] <= 2.0 and distance_change_3d >= -0.3:
             stage = "60일선 근접·재돌파 대기"
-            strong_reason = ""
         elif distance_change_3d < -0.8 and current["distance_pct"] > 0.3:
             stage = "돌파 후 눌림목"
-            strong_reason = ""
         elif current["distance_pct"] <= 8:
             stage = "60일선 위 추세"
-            strong_reason = ""
         else:
             stage = "과열·추격 주의"
-            strong_reason = ""
 
         if stage == "돌파 후 눌림목":
             if current["distance_pct"] >= 0.3 and turnover_ratio <= 1.1 and flow_total >= 0:
@@ -243,7 +235,6 @@ def main() -> None:
                 "name": name,
                 "score": round(score, 1),
                 "stage": stage,
-                "strong_reason": strong_reason,
                 "pullback_quality": pullback_quality,
                 "current_close": round(current["close"], 2),
                 "ma60": round(current["ma60"], 2),
@@ -356,9 +347,6 @@ def main() -> None:
             (item["foreign_flow_value"] + item["institution_flow_value"]) / 100_000_000, 1
         )
         recommendation["recommendation_rank"] = recommendation_rank
-        recommendation["recommendation_basis"] = (
-            f"{report_suffix} 기준 · 강한 돌파 추세 · 외국인·기관 합산 순매수 50억원 이상"
-        )
         recommendations.append(recommendation)
     table_style = (
         "<style>body{font-family:system-ui;margin:24px;color:#20242a}table{border-collapse:collapse;font-size:13px;min-width:1050px}"
@@ -405,12 +393,12 @@ def main() -> None:
         (f"기관 {signal_label}(억)", "institution_flow_eok"),
     ]
     recommendation_columns = [
-        ("추천순위", "recommendation_rank"), ("추천근거", "recommendation_basis"),
+        ("추천순위", "recommendation_rank"),
         *strong_columns,
         ("외국인·기관 합산(억)", "combined_flow_eok"),
     ]
     recommendation_fields = [key for _, key in recommendation_columns] + [
-        "code", "stage", "pullback_quality", "strong_reason", "flow_period", "flow_start_date",
+        "code", "stage", "pullback_quality", "flow_period", "flow_start_date",
     ]
     subtitle = (
         f"가격 기준일 {price_as_of} · 최근 3거래일 이격 변화 · {report_suffix} 기준 수급 확인 · "
