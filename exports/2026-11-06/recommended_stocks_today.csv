@@ -1,0 +1,5 @@
+﻿recommendation_rank,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,flow_period,flow_start_date
+1,KOSDAQ150,안랩,80,-15.98,4.1,36.83,-21.17,,1.47,41.6,74.0,115.6,053800,강한 돌파 추세,,daily,2026-11-06
+2,KOSPI200,LG유플러스,75,16.17,3.64,11.67,12.96,2026-11-04,1.69,-188.1,291.9,103.8,032640,강한 돌파 추세,,daily,2026-11-06
+3,KOSDAQ150,루닛,75,1.31,5.17,41.68,-0.34,,1.14,7.2,57.8,65.0,328130,강한 돌파 추세,,daily,2026-11-06
+4,KOSPI200,한진칼,75,61.1,7.66,47.61,12.79,2026-11-02,3.62,-12.7,90.9,78.3,180640,강한 돌파 추세,,daily,2026-11-06
