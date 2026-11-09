@@ -1,0 +1,3 @@
+﻿recommendation_rank,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,flow_period,flow_start_date
+1,KOSPI200,SK바이오사이언스,80,6.67,6.39,12.21,16.93,,2.12,65.3,37.9,103.1,302440,강한 돌파 추세,,daily,2026-11-09
+2,KOSPI200,LG씨엔에스,78.4,7.33,5.29,7.21,4.42,,1.14,76.9,266.8,343.7,064400,강한 돌파 추세,,daily,2026-11-09
