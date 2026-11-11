@@ -1,0 +1,6 @@
+﻿recommendation_rank,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,flow_period,flow_start_date
+1,KOSPI200,포스코퓨처엠,99.2,11.24,6.43,0.27,8.2,2026-11-11,1.04,15.9,101.8,117.7,003670,강한 돌파 추세,,daily,2026-11-11
+2,KOSPI200,이수스페셜티케미컬,95.2,20.57,14.99,1.62,12.1,2026-11-11,0.66,35.0,27.2,62.2,457190,강한 돌파 추세,,daily,2026-11-11
+3,KOSPI200,한올바이오파마,90.3,37.73,6.66,3.22,28.77,2026-11-11,2.0,-31.9,85.3,53.4,009420,강한 돌파 추세,,daily,2026-11-11
+4,KOSDAQ150,나노신소재,80,20.93,17.91,36.29,16.49,,1.64,15.7,112.7,128.4,121600,강한 돌파 추세,,daily,2026-11-11
+5,KOSDAQ150,RFHIC,75,51.43,10.12,8.74,33.61,2026-11-11,1.42,-88.0,162.1,74.1,218410,강한 돌파 추세,,daily,2026-11-11
