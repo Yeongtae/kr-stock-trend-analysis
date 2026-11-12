@@ -1,0 +1,3 @@
+﻿recommendation_rank,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,flow_period,flow_start_date
+1,KOSPI200,한국가스공사,87.6,4.34,4.9,5.79,4.27,2026-11-11,1.33,36.5,34.1,70.6,036460,강한 돌파 추세,,daily,2026-11-12
+2,KOSDAQ150,JYP Ent.,80,9.08,8.29,15.32,12.85,,1.63,62.6,18.0,80.6,035900,강한 돌파 추세,,daily,2026-11-12
