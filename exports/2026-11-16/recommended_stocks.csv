@@ -1,0 +1,7 @@
+﻿recommendation_rank,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,flow_period,flow_start_date
+1,KOSDAQ150,와이씨,97.6,0.15,7.19,0.79,4.13,,1.5,-82.4,134.1,51.7,232140,강한 돌파 추세,,recent3,2026-11-12
+2,KOSPI200,HMM,96.5,2.56,9.73,1.16,9.01,2026-11-16,1.27,235.9,-60.8,175.1,011200,강한 돌파 추세,,recent3,2026-11-12
+3,KOSPI200,한국가스공사,89.2,1.99,4.64,5.25,4.29,,1.48,30.3,83.7,114.0,036460,강한 돌파 추세,,recent3,2026-11-12
+4,KOSDAQ150,삼현,80,-2.36,10.43,13.77,8.89,,1.69,32.1,81.0,113.0,437730,강한 돌파 추세,,recent3,2026-11-12
+5,KOSPI200,한진칼,80,9.23,9.61,53.67,11.7,,1.67,281.9,230.6,512.5,180640,강한 돌파 추세,,recent3,2026-11-12
+6,KOSDAQ150,루닛,75,0.75,9.7,29.48,4.71,,1.15,4.0,71.4,75.4,328130,강한 돌파 추세,,recent3,2026-11-12
