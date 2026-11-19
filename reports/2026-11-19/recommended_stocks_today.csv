@@ -1,0 +1,6 @@
+﻿recommendation_rank,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,flow_period,flow_start_date
+1,KOSDAQ150,휴젤,82.2,10.05,6.36,4.28,10.81,2026-11-19,1.12,-21.8,78.5,56.7,145020,강한 돌파 추세,,daily,2026-11-19
+2,KOSPI200,하이브,80,19.46,4.82,12.52,17.49,2026-11-18,1.47,133.5,247.9,381.4,352820,강한 돌파 추세,,daily,2026-11-19
+3,KOSDAQ150,CJ ENM,80,29.17,12.13,37.86,31.89,,2.23,49.5,14.4,64.0,035760,강한 돌파 추세,,daily,2026-11-19
+4,KOSPI200,대한항공,75,3.65,3.49,11.25,1.99,,0.84,130.4,127.4,257.8,003490,강한 돌파 추세,,daily,2026-11-19
+5,KOSPI200,셀트리온,75,-0.69,3.37,12.64,-0.26,,0.7,162.3,152.8,315.1,068270,강한 돌파 추세,,daily,2026-11-19
