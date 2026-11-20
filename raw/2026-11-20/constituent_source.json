@@ -1,0 +1,12 @@
+{
+  "kind": "namu",
+  "urls": {
+    "KOSPI200": "https://m.namu.moe/w/KOSPI200",
+    "KOSDAQ150": "https://m.namu.moe/w/KOSDAQ150"
+  },
+  "snapshot_dates": {
+    "KOSPI200": "2026-06-12",
+    "KOSDAQ150": "2026-06-12"
+  },
+  "krx_error": "The read operation timed out"
+}
