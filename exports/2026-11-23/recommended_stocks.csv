@@ -1,0 +1,4 @@
+﻿recommendation_rank,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,flow_period,flow_start_date
+1,KOSDAQ150,CJ ENM,80,3.92,7.23,29.9,5.82,,2.53,84.6,38.9,123.5,035760,강한 돌파 추세,,recent3,2026-11-19
+2,KOSDAQ150,스튜디오드래곤,80,1.41,5.53,43.58,12.14,,3.2,13.2,78.4,91.6,253450,강한 돌파 추세,,recent3,2026-11-19
+3,KOSDAQ150,삼현,75,10.06,3.8,26.23,0.58,,1.64,-96.1,166.6,70.5,437730,강한 돌파 추세,,recent3,2026-11-19
