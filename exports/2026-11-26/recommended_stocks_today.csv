@@ -1,0 +1,6 @@
+﻿recommendation_rank,universe,name,score,weekly_return_pct,signal_return_pct,distance_pct,distance_change_3d,cross_date,turnover_ratio,foreign_flow_eok,institution_flow_eok,combined_flow_eok,code,stage,pullback_quality,flow_period,flow_start_date
+1,KOSDAQ150,삼현,80,23.74,5.31,37.58,11.34,,1.75,51.8,44.7,96.5,437730,강한 돌파 추세,,daily,2026-11-26
+2,KOSDAQ150,RFHIC,75,20.24,17.47,17.26,5.79,,1.27,-34.3,123.1,88.8,218410,강한 돌파 추세,,daily,2026-11-26
+3,KOSDAQ150,레인보우로보틱스,75,21.01,5.71,19.84,17.15,,1.84,-81.7,182.7,101.0,277810,강한 돌파 추세,,daily,2026-11-26
+4,KOSPI200,하이브,70,5.5,8.3,12.91,9.86,,0.97,-119.6,252.4,132.8,352820,강한 돌파 추세,,daily,2026-11-26
+5,KOSDAQ150,JYP Ent.,70,8.29,8.17,23.68,11.2,,0.89,-45.1,104.3,59.2,035900,강한 돌파 추세,,daily,2026-11-26
